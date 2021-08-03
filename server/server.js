@@ -4,12 +4,27 @@ const bodyParser = require('body-parser');
 const app = express();
 const PORT = 5000;
 
+const router = express.Router();
+const pg = require('pg');
+
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static('server/public'));
 
 app.listen(PORT, () => {
     console.log('listening on port', PORT)
 });
+
+
+// Create a connection "pool" to our postgres DB
+const pool = new pg.Pool({
+    database: 'jazzy_sql',      // name of the database
+
+    // Optional Params
+    host: 'localhost',
+    port: 5432,
+
+});
+
 
 // TODO - Replace static content with a database tables
 const artistList = [ 
@@ -49,13 +64,57 @@ const songList = [
 ];
 
 app.get('/artist', (req, res) => {
-    console.log(`In /songs GET`);
-    res.send(artistList);
+
+    let sqlQuery = `
+        -- We can write any SQL we want here!
+        SELECT * FROM "artist";
+    `;
+    pool.query(sqlQuery)
+        .then((dbRes) => {
+            // Log the response data
+            console.log(dbRes);
+            res.send(dbRes.rows);
+        })
+        .catch((err) => {
+            console.log('sql failed', err);
+            res.sendStatus(500);
+        });
+    // res.send(musicLibrary);
+
+    // console.log(`In /songs GET`);
+    // res.send(artistList);
 });
 
 app.post('/artist', (req, res) => {
-    artistList.push(req.body);
-    res.sendStatus(201);
+//     console.log(req.body);
+    let sqlQuery = `
+        -- Add a new song to the DB
+        INSERT INTO "artist"
+            ("name", "birthday")
+        VALUES
+        -- Use placeholders or SQL Parameters
+        -- to prevent a SQL Injection attach
+            ($1, $2);
+    `;
+    let sqlParams = [
+        req.body.name, // $1
+        req.body.birthdate,  // $2
+    ]
+     console.log('sqlQuery:', sqlQuery);
+     console.log('sql params', sqlParams);
+
+    pool.query(sqlQuery, sqlParams)
+        .then((dbRes) => {
+            // DB is happy,
+            // We're happy
+            // Everyone's happy
+            // Don't need dbRes'
+            res.send(201); // Created
+        })
+        .catch((err) => {
+            console.log("post error", err);
+            res.sendStatus(500);
+        });
 });
 
 app.get('/song', (req, res) => {
