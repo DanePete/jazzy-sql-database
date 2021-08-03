@@ -64,7 +64,6 @@ const songList = [
 ];
 
 app.get('/artist', (req, res) => {
-
     let sqlQuery = `
         -- We can write any SQL we want here!
         SELECT * FROM "artist";
@@ -79,14 +78,9 @@ app.get('/artist', (req, res) => {
             console.log('sql failed', err);
             res.sendStatus(500);
         });
-    // res.send(musicLibrary);
-
-    // console.log(`In /songs GET`);
-    // res.send(artistList);
 });
 
 app.post('/artist', (req, res) => {
-//     console.log(req.body);
     let sqlQuery = `
         -- Add a new song to the DB
         INSERT INTO "artist"
@@ -118,13 +112,52 @@ app.post('/artist', (req, res) => {
 });
 
 app.get('/song', (req, res) => {
-    console.log(`In /songs GET`);
-    res.send(songList);
+    let sqlQuery = `
+    -- We can write any SQL we want here!
+    SELECT * FROM "song";
+    `;
+    pool.query(sqlQuery)
+        .then((dbRes) => {
+            // Log the response data
+            console.log(dbRes);
+            res.send(dbRes.rows);
+        })
+        .catch((err) => {
+            console.log('sql failed', err);
+            res.sendStatus(500);
+        });
 });
 
 app.post('/song', (req, res) => {
-    songList.push(req.body);
-    res.sendStatus(201);
+    let sqlQuery = `
+        -- Add a new song to the DB
+        INSERT INTO "song"
+            ("title", "length", "released")
+        VALUES
+        -- Use placeholders or SQL Parameters
+        -- to prevent a SQL Injection attach
+            ($1, $2, $3);
+    `;
+    let sqlParams = [
+        req.body.title, // $1
+        req.body.length,  // $2
+        req.body.released,  // $3
+    ]
+    console.log('sqlQuery:', sqlQuery);
+    console.log('sql params', sqlParams);
+
+    pool.query(sqlQuery, sqlParams)
+        .then((dbRes) => {
+            // DB is happy,
+            // We're happy
+            // Everyone's happy
+            // Don't need dbRes'
+            res.send(201); // Created
+        })
+        .catch((err) => {
+            console.log("post error", err);
+            res.sendStatus(500);
+        });
 });
 
 
