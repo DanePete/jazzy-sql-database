@@ -108,6 +108,7 @@ function renderSongs(listOfSongs) {
     $('#songTableBody').empty();
     // Add all songs to table
     for (let song of listOfSongs) {
+        
         $('#songTableBody').append(`
                 <tr>
                     <td>${song.title}</td>
