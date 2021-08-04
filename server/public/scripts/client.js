@@ -93,10 +93,11 @@ function renderArtists( listOfArtists ) {
 
     // Add all artists to table
     for(let artist of listOfArtists) {
+        var d = new Date(artist.birthday);
         $('#artistTableBody').append(`
                 <tr>
                     <td>${artist.name}</td>
-                    <td>${artist.birthdate}</td>
+                    <td>${d.toLocaleDateString('en-US')}</td>
                 </tr>`
         );
     }
